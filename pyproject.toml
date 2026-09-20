@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "srr-merge"
+version = "0.1.0"
+description = "Selective Router Repair for merged mixture-of-experts models"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {file = "LICENSE"}
+dependencies = [
+  "torch>=2.3",
+  "transformers>=4.44,<5",
+  "accelerate>=0.30",
+  "safetensors>=0.4",
+]
+
+[project.scripts]
+srr-cache = "srr.cache:main"
+srr-build = "srr.build:main"
+srr-overlay = "srr.overlay:main"
+srr-merge-baselines = "srr.merges:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

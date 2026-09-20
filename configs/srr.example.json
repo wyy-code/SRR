@@ -1,0 +1,31 @@
+{
+  "status": "draft",
+  "base_root": "/path/to/base-model",
+  "sources": {
+    "math": "/path/to/math-specialist",
+    "commonsense": "/path/to/commonsense-specialist",
+    "reasoning": "/path/to/reasoning-specialist"
+  },
+  "roles": ["math", "commonsense", "reasoning"],
+  "trajectory": {"max_new_tokens": 96, "batch_size": 4},
+  "srr": {
+    "seed": 2026091101,
+    "cpu_threads": 8,
+    "reliability_temperature": 0.5,
+    "prompt_sign_consistency": 0.75,
+    "min_route_activity": 0.002,
+    "edges_per_role": 2,
+    "ridge_relative": 0.001,
+    "cg_max_iterations": 4096,
+    "cg_tolerance": 1e-6,
+    "cg_residual_refresh_interval": 4096,
+    "scale": 0.0625
+  },
+  "configurations": {
+    "average": {
+      "parent": "/path/to/merged-average-parent",
+      "parent_trajectory_cache": "/path/to/output/average-parent-cache",
+      "srr_candidate_root": "/path/to/output/average-srr"
+    }
+  }
+}
