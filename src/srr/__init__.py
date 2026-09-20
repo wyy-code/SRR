@@ -1,3 +1,3 @@
-"""Selective Router Repair (SRR), the LC-MERGE-RC r2 implementation."""
+"""Selective Router Repair (SRR)."""
 
 __version__ = "0.1.0"

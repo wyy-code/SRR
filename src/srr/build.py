@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a Selective Router Repair (LC-MERGE-RC r2) candidate."""
+"""Build a Selective Router Repair (SRR) candidate."""
 
 from __future__ import annotations
 
@@ -467,7 +467,7 @@ def main() -> None:
             parent_traces,
             float(lc["reliability_temperature"]),
         )
-        result = solver.batched_weighted_functional_pullback(
+        result = solver.solve_srr_weighted_ridge(
             hidden=system["hidden"].to("cuda:0"),
             response=system["response"].to("cuda:0"),
             weights=system["weights"].to("cuda:0"),
@@ -542,8 +542,8 @@ def main() -> None:
             "status": "completed",
             "configuration": args.configuration,
             "method": "srr",
-            "long_name": "Selective Router Repair (LC-MERGE-RC r2)",
-            "variant": "r2_parent_residual_parent_reliable_clipped",
+            "long_name": "Selective Router Repair",
+            "variant": "parent_residual_parent_reliable_clipped",
             "active_router_keys": keys,
             "changed_router_keys_bf16": changed,
             "parent": str(parent),

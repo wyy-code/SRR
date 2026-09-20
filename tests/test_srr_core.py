@@ -12,7 +12,7 @@ from srr.build import (
     select_edges,
     split_summary,
 )
-from srr.solver import batched_weighted_functional_pullback
+from srr.solver import solve_srr_weighted_ridge
 
 
 class SRRCoreTests(unittest.TestCase):
@@ -61,7 +61,7 @@ class SRRCoreTests(unittest.TestCase):
         hidden = torch.tensor([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])
         response = torch.tensor([[1.0], [2.0], [3.0]])
         weights = torch.tensor([[1.0], [0.5], [1.0]])
-        result = batched_weighted_functional_pullback(
+        result = solve_srr_weighted_ridge(
             hidden=hidden, response=response, weights=weights,
             owned_rows=torch.tensor([True]), ridge_relative=1e-3,
             max_iterations=100, tolerance=1e-8,
