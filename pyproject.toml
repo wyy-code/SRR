@@ -21,6 +21,7 @@ srr-cache = "srr.cache:main"
 srr-build = "srr.build:main"
 srr-overlay = "srr.overlay:main"
 srr-merge-baselines = "srr.merges:main"
+srr-analyze = "srr.analysis.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
