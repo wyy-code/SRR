@@ -77,7 +77,7 @@ class RouterCapture:
         self.close()
 
 
-class RouterJacobianCapture(RouterCapture):
+class RouterInputCapture(RouterCapture):
     """Capture exact linear-gate inputs together with full router logits."""
 
     def __init__(self, model: Any, layer_ids: list[int]):

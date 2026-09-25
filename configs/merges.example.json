@@ -4,7 +4,7 @@
     "average": {},
     "task_arithmetic": {"scaling_coefficient": 0.5625},
     "ties": {"K": 0.2, "scaling_coefficient": 1.0},
-    "dare": {"drop_probability": 0.8, "scaling_coefficient": 1.0, "seed": 2026091101}
+    "dare": {"drop_probability": 0.8, "scaling_coefficient": 1.0, "seed": 42}
   },
   "families": {
     "olmoe": {

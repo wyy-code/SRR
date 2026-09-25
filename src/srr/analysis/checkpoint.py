@@ -22,8 +22,8 @@ def main() -> None:
 
     import torch
     from srr.modeling import load_model
-    from .native_intervention import NativeMoERouteIntervention
-    from .router_capture import RouterJacobianCapture
+    from .route_intervention import NativeRouteIntervention
+    from .router_capture import RouterInputCapture
 
     tokens = [int(value) for value in args.token_ids.split(",")]
     if not tokens or any(value < 0 for value in tokens) or not 0 <= args.position < len(tokens):
@@ -35,7 +35,7 @@ def main() -> None:
     ids = torch.tensor([tokens], dtype=torch.long, device="cuda:0")
     case = "olmoe" if args.case == "qwen3" else args.case
     with torch.inference_mode():
-        with RouterJacobianCapture(model, [args.layer]) as capture:
+        with RouterInputCapture(model, [args.layer]) as capture:
             baseline = model(input_ids=ids, use_cache=False).logits.float()
             if args.layer not in capture.inputs or args.layer not in capture.outputs:
                 raise RuntimeError("router hook did not capture the requested layer")
@@ -44,7 +44,7 @@ def main() -> None:
             capture_mode = capture.capture_modes[args.layer]
             gate_shape = list(capture.outputs[args.layer].shape)
 
-        operator = NativeMoERouteIntervention(model, case, [args.layer])
+        operator = NativeRouteIntervention(model, case, [args.layer])
         try:
             operator.set({
                 "layer_id": args.layer,

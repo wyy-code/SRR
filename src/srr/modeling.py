@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 
-def install_legacy_dynamic_cache_compat() -> None:
+def enable_deepseek_cache_compatibility() -> None:
     """Support pinned DeepSeek remote code expecting older DynamicCache accessors."""
     from transformers.cache_utils import DynamicCache
 
@@ -109,7 +109,7 @@ def router_logits_from_hidden(module: Any, hidden: Any) -> Any:
     return F.linear(hidden, weight, bias)
 
 
-def aligned(row: dict) -> tuple[Any, int, int]:
+def prepare_continuation_inputs(row: dict) -> tuple[Any, int, int]:
     import torch
 
     prompt = row["prompt_ids"]

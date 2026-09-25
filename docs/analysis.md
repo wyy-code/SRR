@@ -4,7 +4,7 @@ The analysis has three distinct levels. **Crossed routing** asks whether aligned
 
 ## 1. Capture and cross routes
 
-`RouterJacobianCapture` in `srr.analysis.router_capture` records each gate's input and full pre-softmax logits. Run source and merged models on the **same token IDs**. Match prompt ID, token position, sparse-layer ID, tokenizer, and expert ordering before calling `crossed_routes`:
+`RouterInputCapture` in `srr.analysis.router_capture` records each gate's input and full pre-softmax logits. It does not compute a Jacobian. Run source and merged models on the **same token IDs**. Match prompt ID, token position, sparse-layer ID, tokenizer, and expert ordering before calling `crossed_routes`:
 
 ```python
 from srr.analysis.routing import crossed_routes, route_origin_masks
@@ -37,7 +37,7 @@ It reports tie-aware AUROC with prompt-cluster bootstrap intervals. Positive gai
 
 ## 2. Native interventions and mixture outputs
 
-`NativeMoERouteIntervention` and `NativeMoERouteBatchIntervention` are the original native-forward hooks used for DeepSeekMoE and OLMoE-style MoE blocks. The Qwen3 extension used the OLMoE-style adapter after a native-routing round-trip check. The hooks retain the model's surrounding MoE computation, explicit selected weights and routed mass; `native_noop` and native-recompute tolerances should be checked **before** interpreting any patched pass. The original per-event implementation and batch-row isolation are retained in `srr.analysis.native_intervention` and `srr.analysis.batch_intervention`. They depend on compatible checkpoint implementations; they are not a universal MoE wrapper.
+`NativeRouteIntervention` and `BatchedNativeRouteIntervention` are native-forward hooks for DeepSeekMoE and OLMoE-style MoE blocks. The Qwen3 extension used the OLMoE-style adapter after a native-routing round-trip check. The hooks retain the model's surrounding MoE computation, explicit selected weights and routed mass; `native_noop` and native-recompute tolerances should be checked **before** interpreting any patched pass. The single-event and batch-row-isolated implementations live in `srr.analysis.route_intervention` and `srr.analysis.batched_route_intervention`. They depend on compatible checkpoint implementations; they are not a universal MoE wrapper.
 
 `routed_mixture(expert_outputs, selected, weights)` computes the weighted mixture at the **same** hidden state. `output_comparison` returns cosine and relative L2; `max_entering_leaving_cosine` compares entering/leaving experts. Supply the checkpoint's native weights, including its unnormalized mass where applicable. A high cosine means directionally aligned outputs, not equal magnitudes or unchanged downstream predictions.
 
@@ -55,8 +55,8 @@ Use `srr-analyze task --input items.jsonl --output task_summary.json`. The resul
 
 `cluster_bootstrap_mean` samples entire prompt clusters, preserving all their tokens/items; `holm_adjust` adjusts a prespecified family of p-values; `binary_auc` is tie-aware. The CLI refuses to overwrite an existing output and includes an input SHA-256. For multiple architectures or parents, run each frozen condition separately and retain the condition/checkpoint manifest alongside its result.
 
-## Source provenance and scope
+## Scope and reproducibility
 
-The SRR construction code remains in `src/srr`. The native intervention modules were taken from the local Section 3 native-order recovery (`native_moe_route_intervention_20260812.py`, SHA-256 `855ca297419db268a895d65c1149e3a7d03dd1b271349dfacede326497208723`; `native_moe_route_batch_intervention_retry02_20260813.py`, SHA-256 `043ea48b2a399e4378ca48839dea1cc9a03a9d6486abd145579c68897995a34f`), with only the package import changed in the batch module. `router_capture.py` came from the SAR-MergeCal submission package (SHA-256 `71fd5a9f99e3e2f74bd257553fb3201b157c2939fece8e085066574fe64010fa`). The reusable crossed-route, mixture, and paired-statistics APIs are factored from the same analysis contracts; they are **not** a claim that this repository contains the original private checkpoints or reproduces every paper table from raw data.
+The SRR construction code and analysis toolkit are versioned together in this repository. Their public APIs are named by function rather than by internal experiment lineage. The native intervention, crossed-route, mixture, and paired-statistics modules implement the analysis contracts described above; their presence is **not** a claim that this repository contains private checkpoints or reproduces every paper table from raw data.
 
 For paper-level reproduction, retain the frozen checkpoint hashes, sample lists, route-cache hashes, intervention settings, benchmark scoring protocol, and matched per-item outputs. No checkpoint, dataset, or score file is bundled here. See the paper appendix for the exact sample counts and estimands; do not equate the full-token origin sample with the final-five-layer hash-selected diagnostic sample.

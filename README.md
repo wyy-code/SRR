@@ -46,9 +46,9 @@ For measured route metrics versus token-local intervention gains:
 srr-analyze diagnosis --input /path/to/diagnostic_events.jsonl --output /path/to/diagnosis.json
 ```
 
-The output contains prompt-cluster bootstrap intervals and the SHA-256 of its input. Crossed routes alone describe structural changes, **not** task-level repair. Native intervention hooks and mixture metrics are Python APIs; see [analysis guide](docs/analysis.md) for exact schemas and architecture scope.
+The output contains prompt-cluster bootstrap intervals and the SHA-256 of its input. Crossed routes alone describe structural changes, **not** task-level repair. The native intervention APIs are `NativeRouteIntervention` and `BatchedNativeRouteIntervention`; see the [analysis guide](docs/analysis.md) for exact schemas and architecture scope.
 
-Run the checkpoint-free tests with `PYTHONPATH=src python -m unittest discover -s tests -v`. The optional archived-builder parity test additionally requires `SRR_REFERENCE_BUILDER=/path/to/frozen_builder.py`.
+Run the checkpoint-free tests with `PYTHONPATH=src python -m unittest discover -s tests -v`. The optional numerical parity test additionally requires `SRR_REFERENCE_MODULE=/path/to/reference.py`.
 The scope of server-side validation and its remaining limits are recorded in [validation notes](docs/validation.md).
 
 To check native routing on an existing checkpoint without changing its weights, run `srr-check-routing --model /path/to/parent --case olmoe --layer 0`. This checks gate capture, routed-output recomputation, and a no-op intervention; it is not a benchmark.

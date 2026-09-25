@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Architecture-native MoE route interventions with explicit S/alpha/q accounting."""
 
 from __future__ import annotations
@@ -171,7 +170,7 @@ def aligned_alpha(state: RouteState, universe: torch.Tensor) -> torch.Tensor:
     return output
 
 
-class NativeMoERouteIntervention:
+class NativeRouteIntervention:
     """Replace one routed-expert mixture while preserving the surrounding MoE block.
 
     DeepSeek returns routed+shared output, so the hook applies target-native routed

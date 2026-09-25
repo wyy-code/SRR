@@ -33,7 +33,7 @@ class RoutingTensorTests(unittest.TestCase):
         self.assertGreaterEqual(max_entering_leaving_cosine(outputs, torch.tensor([0, 1]), torch.tensor([0, 2])).item(), 0)
 
     def test_native_route_mass_is_explicit(self):
-        from srr.analysis.native_intervention import route_from_logits, route_from_selected_weights
+        from srr.analysis.route_intervention import route_from_logits, route_from_selected_weights
 
         logits = torch.tensor([2.0, 1.0, 0.0])
         native = route_from_logits(logits, 2, norm_topk_prob=False)
@@ -44,7 +44,7 @@ class RoutingTensorTests(unittest.TestCase):
     def test_native_hook_noop_and_selected_route_change(self):
         from types import SimpleNamespace
         from torch import nn
-        from srr.analysis.native_intervention import NativeMoERouteIntervention, route_from_logits
+        from srr.analysis.route_intervention import NativeRouteIntervention, route_from_logits
         from srr.analysis.mixture import routed_mixture
 
         class TinyBlock(nn.Module):
@@ -70,15 +70,15 @@ class RoutingTensorTests(unittest.TestCase):
         block = TinyBlock()
         model = SimpleNamespace(model=SimpleNamespace(layers=[SimpleNamespace(mlp=block)]))
         hidden = torch.tensor([[1.0, 0.0]])
-        from srr.analysis.router_capture import RouterJacobianCapture
+        from srr.analysis.router_capture import RouterInputCapture
 
-        with RouterJacobianCapture(model, [0]) as capture:
+        with RouterInputCapture(model, [0]) as capture:
             block(hidden)
             self.assertEqual(capture.capture_modes[0], "native_full_logits")
             torch.testing.assert_close(capture.inputs[0], hidden)
             self.assertEqual(tuple(capture.outputs[0].shape), (1, 3))
         native_output = block(hidden)[0]
-        operator = NativeMoERouteIntervention(model, "olmoe", [0])
+        operator = NativeRouteIntervention(model, "olmoe", [0])
         try:
             operator.set({"layer_id": 0, "position": 0, "condition": "native_noop",
                           "assert_native_recompute_rtol": 1e-5})
@@ -96,11 +96,11 @@ class RoutingTensorTests(unittest.TestCase):
         finally:
             operator.close()
 
-        from srr.analysis.batch_intervention import NativeMoERouteBatchIntervention
+        from srr.analysis.batched_route_intervention import BatchedNativeRouteIntervention
 
         batched = torch.tensor([[[1.0, 0.0]], [[1.0, 0.0]]])
         native_batch = block(batched)[0]
-        batch_operator = NativeMoERouteBatchIntervention(model, "olmoe", [0])
+        batch_operator = BatchedNativeRouteIntervention(model, "olmoe", [0])
         try:
             batch_operator.set_many([{
                 "batch_index": 1, "sample_id": "second-row", "layer_id": 0,

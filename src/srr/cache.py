@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import shutil
 
-from .build import finish, read_jsonl, sha256, write_json_x
+from .build import finish, read_jsonl, sha256, write_json_exclusive
 
 
 def generate(model, tokenizer, rows: list[dict], max_new_tokens: int, batch_size: int) -> list[dict]:
@@ -80,7 +80,7 @@ def main() -> None:
         raise ValueError("prompt_ids must be nonempty")
 
     if protocol.get("legacy_deepseek_cache_compat", False):
-        modeling.install_legacy_dynamic_cache_compat()
+        modeling.enable_deepseek_cache_compatibility()
     tokenizer = AutoTokenizer.from_pretrained(
         Path(protocol["base_root"]), trust_remote_code=True, local_files_only=True,
     )
@@ -99,7 +99,7 @@ def main() -> None:
     modeling.clear_cuda()
 
     building.mkdir(parents=True)
-    write_json_x(building / "source.json", {
+    write_json_exclusive(building / "source.json", {
         "protocol_sha256": sha256(protocol_path),
         "prompt_file_sha256": sha256(args.prompts),
         "parent": config["parent"],

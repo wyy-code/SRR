@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Batched, row-isolated architecture-native MoE route interventions."""
 
 from __future__ import annotations
@@ -8,8 +7,8 @@ from typing import Any
 import torch
 import torch.nn.functional as F
 
-from .native_intervention import (
-    NativeMoERouteIntervention,
+from .route_intervention import (
+    NativeRouteIntervention,
     RouteState,
     aligned_alpha,
     js_divergence,
@@ -19,12 +18,12 @@ from .native_intervention import (
 )
 
 
-class NativeMoERouteBatchIntervention(NativeMoERouteIntervention):
+class BatchedNativeRouteIntervention(NativeRouteIntervention):
     """Patch one token-layer per batch row in a shared forward pass.
 
     Each batch row is an independent copy of one prompt.  This preserves the
     single-intervention estimand while amortizing model execution across the
-    eight frozen token-layer records selected for that prompt.
+    selected token-layer records for that prompt.
     """
 
     def set_many(self, contexts: list[dict[str, Any]] | None) -> None:

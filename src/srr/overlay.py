@@ -7,7 +7,7 @@ import json
 import os
 from pathlib import Path
 
-from .build import sha256, verify_manifest, write_json_x
+from .build import sha256, verify_manifest, write_json_exclusive
 
 
 def main() -> None:
@@ -39,7 +39,7 @@ def main() -> None:
         raise FileExistsError(f"refusing overwrite: {output} or {building}")
 
     if args.legacy_deepseek_cache_compat:
-        modeling.install_legacy_dynamic_cache_compat()
+        modeling.enable_deepseek_cache_compatibility()
     model = modeling.load_model(parent, args.architecture_code_root)
     overlay = load_file(str(candidate / "router_master_fp32.safetensors"))
     gates = modeling.gate_modules(model)
@@ -62,7 +62,7 @@ def main() -> None:
     model.save_pretrained(building, safe_serialization=True)
     tokenizer = AutoTokenizer.from_pretrained(parent, trust_remote_code=True, local_files_only=True)
     tokenizer.save_pretrained(building)
-    write_json_x(building / "SRR_OVERLAY.json", {
+    write_json_exclusive(building / "SRR_OVERLAY.json", {
         "method": "srr",
         "parent": str(parent),
         "candidate_manifest_sha256": sha256(candidate / "MANIFEST.sha256"),

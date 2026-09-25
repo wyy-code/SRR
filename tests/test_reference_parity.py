@@ -1,4 +1,4 @@
-"""Optional parity check against the archived experimental builder snapshot."""
+"""Optional numerical parity check against a reference implementation."""
 
 import importlib.util
 import os
@@ -12,14 +12,14 @@ from srr import build
 class ReferenceParityTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        path = os.environ.get("SRR_REFERENCE_BUILDER")
+        path = os.environ.get("SRR_REFERENCE_MODULE")
         if not path:
-            raise unittest.SkipTest("set SRR_REFERENCE_BUILDER for snapshot parity")
+            raise unittest.SkipTest("set SRR_REFERENCE_MODULE for numerical parity")
         spec = importlib.util.spec_from_file_location("srr_reference_builder", path)
         cls.reference = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(cls.reference)
 
-    def test_core_functions_match_frozen_snapshot(self):
+    def test_core_functions_match_reference(self):
         key = "model.layers.4.mlp.gate.weight"
         def trace(nll, logits, hidden=None):
             value = {"nll": torch.tensor(nll), "route_logits": {key: torch.tensor(logits)}}

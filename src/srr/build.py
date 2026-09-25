@@ -28,7 +28,7 @@ def read_jsonl(path: Path) -> list[dict]:
         return [json.loads(line) for line in handle if line.strip()]
 
 
-def write_json_x(path: Path, payload: object) -> None:
+def write_json_exclusive(path: Path, payload: object) -> None:
     with path.open("x", encoding="utf-8") as handle:
         json.dump(payload, handle, indent=2, sort_keys=True)
         handle.write("\n")
@@ -124,7 +124,7 @@ def capture_rows(common: Any, model: Any, rows: list[dict], keys: list[str], cap
     traces: dict[str, dict] = {}
     try:
         for number, row in enumerate(rows, start=1):
-            ids, start, stop = common.aligned(row)
+            ids, start, stop = common.prepare_continuation_inputs(row)
             capture.clear()
             with torch.inference_mode():
                 output = model(input_ids=ids, attention_mask=torch.ones_like(ids), use_cache=False)
@@ -347,7 +347,7 @@ def main() -> None:
     if protocol.get("status") != "frozen":
         raise RuntimeError("SRR protocol must be frozen before candidate construction")
     if protocol.get("legacy_deepseek_cache_compat", False):
-        common.install_legacy_dynamic_cache_compat()
+        common.enable_deepseek_cache_compatibility()
 
     config = protocol["configurations"][args.configuration]
     source_run = Path(config["parent_trajectory_cache"])
@@ -357,7 +357,7 @@ def main() -> None:
     if output.exists() or building.exists():
         raise FileExistsError(f"refusing overwrite: {output} or {building}")
     building.mkdir(parents=True)
-    write_json_x(
+    write_json_exclusive(
         building / "launch.json",
         {
             "pid": os.getpid(),
@@ -445,7 +445,7 @@ def main() -> None:
                 "splits": split_audit,
             }
         )
-    write_json_x(building / "stable_pair_audit.json", {"status": "passed", "layers": edge_audit})
+    write_json_exclusive(building / "stable_pair_audit.json", {"status": "passed", "layers": edge_audit})
 
     parent_model = common.load_model(parent, architecture_code_root)
     parent_traces = capture_rows(common, parent_model, rows, keys, True, "parent")
@@ -536,7 +536,7 @@ def main() -> None:
     current_bp = float(json.loads(budget_path.read_text())["B_p"]) if budget_path.is_file() else None
     checkpoint = building / "router_master_fp32.safetensors"
     save_file({name: value.float().cpu().contiguous() for name, value in candidate.items()}, str(checkpoint))
-    write_json_x(
+    write_json_exclusive(
         building / "candidate.json",
         {
             "status": "completed",
