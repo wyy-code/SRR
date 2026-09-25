@@ -22,6 +22,8 @@ pip install -e .
 
 The checkpoint-facing commands may require FlashAttention 2 and architecture-specific model code. The JSONL analysis command is CPU-only.
 
+The paper runtime defaults to FlashAttention 2. On a machine without `flash_attn`, set `SRR_ATTN_IMPLEMENTATION=sdpa` (or `eager`) **only for portability testing**; results under a different attention backend are not automatically paper-equivalent.
+
 For CPU-only analysis without installing the model dependencies, run `PYTHONPATH=src python -m srr.analysis.cli` in place of `srr-analyze`.
 
 ## Routing analysis
@@ -48,6 +50,8 @@ The output contains prompt-cluster bootstrap intervals and the SHA-256 of its in
 
 Run the checkpoint-free tests with `PYTHONPATH=src python -m unittest discover -s tests -v`. The optional archived-builder parity test additionally requires `SRR_REFERENCE_BUILDER=/path/to/frozen_builder.py`.
 The scope of server-side validation and its remaining limits are recorded in [validation notes](docs/validation.md).
+
+To check native routing on an existing checkpoint without changing its weights, run `srr-check-routing --model /path/to/parent --case olmoe --layer 0`. This checks gate capture, routed-output recomputation, and a no-op intervention; it is not a benchmark.
 
 ## SRR checkpoint construction
 

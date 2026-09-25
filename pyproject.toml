@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "srr"
-version = "0.1.1"
+version = "0.1.2"
 description = "Selective Router Repair for merged mixture-of-experts models"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -22,6 +22,7 @@ srr-build = "srr.build:main"
 srr-overlay = "srr.overlay:main"
 srr-merge-baselines = "srr.merges:main"
 srr-analyze = "srr.analysis.cli:main"
+srr-check-routing = "srr.analysis.checkpoint:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import gc
+import importlib.util
+import os
 from pathlib import Path
 from typing import Any
 
@@ -26,15 +28,37 @@ def install_legacy_dynamic_cache_compat() -> None:
         DynamicCache.get_usable_length = get_usable_length
 
 
-def load_model(path: Path, architecture_code_root: Path | None = None) -> Any:
+def attention_implementation(override: str | None = None) -> str:
+    """Keep the paper runtime by default; allow explicit portability testing."""
+    implementation = override if override is not None else os.environ.get(
+        "SRR_ATTN_IMPLEMENTATION", "flash_attention_2"
+    )
+    if implementation not in {"flash_attention_2", "sdpa", "eager"}:
+        raise ValueError(f"unsupported attention implementation: {implementation!r}")
+    if implementation == "flash_attention_2" and importlib.util.find_spec("flash_attn") is None:
+        raise RuntimeError(
+            "FlashAttention 2 is not installed. Install flash_attn for the paper "
+            "runtime, or explicitly set SRR_ATTN_IMPLEMENTATION=sdpa/eager "
+            "for a portability check (not a paper-equivalent run)."
+        )
+    return implementation
+
+
+def load_model(
+    path: Path,
+    architecture_code_root: Path | None = None,
+    attn_implementation: str | None = None,
+) -> Any:
     import torch
     from transformers import AutoModelForCausalLM
     from transformers.dynamic_module_utils import get_class_from_dynamic_module
 
+    implementation = attention_implementation(attn_implementation)
+
     if architecture_code_root is None:
         model = AutoModelForCausalLM.from_pretrained(
             path, torch_dtype=torch.bfloat16, trust_remote_code=True,
-            attn_implementation="flash_attention_2", low_cpu_mem_usage=True,
+            attn_implementation=implementation, low_cpu_mem_usage=True,
         )
     else:
         architecture_code_root = architecture_code_root.resolve()
@@ -49,7 +73,7 @@ def load_model(path: Path, architecture_code_root: Path | None = None) -> Any:
         )
         model = model_class.from_pretrained(
             path, config=config, torch_dtype=torch.bfloat16,
-            attn_implementation="flash_attention_2", low_cpu_mem_usage=True,
+            attn_implementation=implementation, low_cpu_mem_usage=True,
         )
     model = model.to("cuda:0").eval()
     model.config.use_cache = False
