@@ -46,6 +46,9 @@ srr-analyze diagnosis --input /path/to/diagnostic_events.jsonl --output /path/to
 
 The output contains prompt-cluster bootstrap intervals and the SHA-256 of its input. Crossed routes alone describe structural changes, **not** task-level repair. Native intervention hooks and mixture metrics are Python APIs; see [analysis guide](docs/analysis.md) for exact schemas and architecture scope.
 
+Run the checkpoint-free tests with `PYTHONPATH=src python -m unittest discover -s tests -v`. The optional archived-builder parity test additionally requires `SRR_REFERENCE_BUILDER=/path/to/frozen_builder.py`.
+The scope of server-side validation and its remaining limits are recorded in [validation notes](docs/validation.md).
+
 ## SRR checkpoint construction
 
 Set model and output paths in [`configs/srr.example.json`](configs/srr.example.json), change `status` to `frozen`, and prepare calibration prompts. Then:
